@@ -1,0 +1,15 @@
+[Unit]
+Description=Sourdough Warming Box Controller
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/pi/Warmer
+ExecStart=/home/pi/Warmer/venv/bin/python /home/pi/Warmer/main.py
+
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
