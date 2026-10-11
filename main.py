@@ -1,5 +1,6 @@
 import time
 from datetime import datetime
+import traceback
 import board
 from devices import Heater, Fan, Display, Thermister
 
@@ -54,7 +55,8 @@ def start():
                 break
 
     except Exception as e:
-        print("An unknown exception {e} occurred.")
+        print(f"An unknown exception {e} occurred.")
+        traceback.print_exc()
 
     finally:
         if heater is not None:
