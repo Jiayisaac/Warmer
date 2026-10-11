@@ -28,6 +28,7 @@ def start():
         
         while True:
             try:
+                old_text = ""
                 curr_t = avg(thermisters[1:])
                 htr_temp, _ = thermisters[0].temp
                 if htr_temp > 65:
@@ -39,14 +40,16 @@ def start():
                     if time.monotonic() >= heater_disable_until:
                         heater.set_output(1)
                 text = [
-                    f'Temperature: {curr_t:<15.1f}°C',
-                    f'Fan: {fan.value * 100:<15.0f}%',
-                    f'Heater: {heater.value * 100:<15.0f}%'
+                    f'Temp: {curr_t:.1f}°C',
+                    f'Fan: {fan.value * 100:.0f}%',
+                    f'Heater: {heater.value * 100:.0f}%'
                 ]
                 print(datetime.now())
                 for line in text:
                     print(line)
-                display.write(text)
+                if text != old_text:
+                    display.write(text)
+                    old_text = text
                 time.sleep(5)
             except KeyboardInterrupt:
                 heater.set_output(0)
