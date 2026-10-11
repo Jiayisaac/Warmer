@@ -9,7 +9,7 @@ SETPOINT = 25
 def avg(thermisters:list):
     t_sum = 0
     for t in thermisters:
-        temp, _ = t.temp()
+        temp, _ = t.temp
         t_sum += temp
     return t_sum / len(thermisters)
 
