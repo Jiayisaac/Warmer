@@ -17,6 +17,7 @@ def start():
     try:
         heater_disable_until = time.monotonic()
         commenced_at = time.monotonic()
+        old_text = ""
         i2c = board.I2C()
         heater = Heater("GPIO12")
         fan = Fan("GPIO17")
@@ -28,7 +29,6 @@ def start():
         
         while True:
             try:
-                old_text = ""
                 curr_t = avg(thermisters[1:])
                 htr_temp, _ = thermisters[0].temp
                 if htr_temp > 65:
