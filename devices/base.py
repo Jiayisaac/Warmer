@@ -65,7 +65,7 @@ class ADSBase:
     
     def _read_temperature(self):
         voltage = self._digital.voltage
-        resistance = self.R_FIXED * voltage / (self.VCC - voltage)
+        resistance = self.R_FIXED * (self.VCC - voltage) / voltage
         temperature = 1 / (
                 1 / self.T_NOMINAL +
                 math.log(resistance / self.R_NOMINAL) / self.BETA
