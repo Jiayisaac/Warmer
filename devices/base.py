@@ -1,6 +1,5 @@
 import time
 import math
-import board
 from adafruit_ads1x15 import ADS1115, ads1x15, AnalogIn
 from gpiozero import PWMOutputDevice
 

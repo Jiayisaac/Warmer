@@ -1,7 +1,6 @@
 import time
 from datetime import datetime
 import board
-import busio
 from devices import Heater, Fan, Display, Thermister
 
 SETPOINT = 25
