@@ -2,7 +2,7 @@
 Controller for sourdough warming box
 
 Flash the RPI Zero W with with Raspberry Pi OS Lite 32bit
-Hostname: pumpkin
+Hostname: warmer
 Username: pi
 Password: ******
 Wi-Fi: ******
