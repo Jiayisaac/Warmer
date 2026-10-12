@@ -24,61 +24,62 @@ PID_REGRESSION_SECS : float = ENVIRONMENT.PID_REGRESSION_SECS
 OVERHEAT_DISABLE_MINS : int = ENVIRONMENT.OVERHEAT_DISABLE_MINS
 MAIN_UPDATE_TIME_SECS : int = ENVIRONMENT.MAIN_UPDATE_TIME_SECS
 
-def avg(thermisters, tolerance=2.0):
-    """Return mean of valid, mutually consistent probes."""
+def avg(thermisters: list[Thermister], tolerance:float=2.0)->None:
+    """Average valid thermistors with consensus checking."""
 
     readings = {}
 
-    for idx, thermister in enumerate(thermisters):
-        probe = f"T{idx}"
-        error = getattr(alert, f"{probe}_PROBE_ERROR")
+    for idx, thermister in enumerate(thermisters, start=1):
+        probe_error = getattr(alert, f"T{idx}_PROBE_ERROR")
 
         try:
             temp, _ = thermister.temp
 
-            if not math.isfinite(temp) or not -10 <= temp <= 80:
-                raise ValueError("Invalid temperature")
+            if not math.isfinite(temp):
+                raise ValueError("Non-finite temperature")
+
+            if not -10 <= temp <= 80:
+                raise ValueError("Temperature outside valid range")
 
             readings[idx] = temp
 
         except (ValueError, TypeError, OverflowError):
-            alert.write(error)
+            alert.write(probe_error)
 
-    if not readings:
-        raise ValueError("No valid thermistors")
+    if len(readings) < 2:
+        raise ValueError("Insufficient valid temperature probes")
 
-    if len(readings) == 3:
-        indices = list(readings)
+    pairs = [
+        (a, b)
+        for a in readings
+        for b in readings
+        if a < b
+        and abs(readings[a] - readings[b]) <= tolerance
+    ]
 
-        agreeing_pairs = [
-            (a, b)
-            for i, a in enumerate(indices)
-            for b in indices[i + 1:]
-            if abs(readings[a] - readings[b]) <= tolerance
-        ]
+    if not pairs:
+        raise ValueError("Temperature probes disagree")
 
-        if len(agreeing_pairs) == 1:
-            a, b = agreeing_pairs[0]
-            outlier = next(
-                idx for idx in indices
-                if idx not in (a, b)
-            )
+    if len(readings) == 3 and len(pairs) == 1:
+        accepted = set(pairs[0])
+    else:
+        accepted = set(readings)
 
-            if (
-                abs(readings[outlier] - readings[a]) > tolerance
-                and abs(readings[outlier] - readings[b]) > tolerance
-            ):
-                alert.write(
-                    getattr(alert, f"T{outlier}_PROBE_ERROR")
-                )
-                del readings[outlier]
+    values = [readings[idx] for idx in accepted]
 
-    for idx in readings:
-        alert.clear(
-            getattr(alert, f"T{idx}_PROBE_ERROR")
-        )
+    if max(values) - min(values) > tolerance:
+        raise ValueError("Temperature probes disagree")
 
-    return sum(readings.values()) / len(readings)
+    for idx in range(1, len(thermisters) + 1):
+        probe_error = getattr(alert, f"T{idx}_PROBE_ERROR")
+
+        if idx in accepted:
+            alert.clear(probe_error)
+        else:
+            alert.write(probe_error)
+
+    return sum(values) / len(values)
+
 
 def heater_power_limit(heater_temp: float, heater_disabled_until: float) -> float:
     """Return maximum permitted heater PWM (0.0–1.0)."""
@@ -98,7 +99,7 @@ def heater_power_limit(heater_temp: float, heater_disabled_until: float) -> floa
     alert.write(alert.HEATER_LIMITED)
     return (65.0 - heater_temp) / 10.0
 
-def start():
+def start()->None:
     wifi_thread = threading.Thread(
         target=WiFi.service,
         daemon=True
@@ -107,7 +108,6 @@ def start():
 
     web_thread = threading.Thread(
         target=run_web_server,
-        args=(flame,),
         daemon=True
     )
     web_thread.start()
@@ -144,6 +144,9 @@ def start():
             try:
                 curr_t = avg(thermisters[1:])
                 htr_temp, _ = thermisters[0].temp
+
+                if not math.isfinite(htr_temp) or not -10 <= htr_temp <= 120:
+                    raise ValueError("Invalid temperature")
 
                 if htr_temp >= MAX_HEATER_TEMP:
                     heater.set_output(0)

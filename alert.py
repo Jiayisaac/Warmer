@@ -28,10 +28,16 @@ class Alert:
 
         return self._alerts[self._last_pos]
 
-    def clear(self, alert_text:str)->None:
+    def clear(self, alert_text: str) -> None:
         if alert_text in self._alerts:
             idx = self._alerts.index(alert_text)
-            self._alerts.pop(idx)
+            self._alerts.remove(alert_text)
+
+            if idx <= self._last_pos:
+                self._last_pos -= 1
+
+            if not self._alerts:
+                self._last_pos = -1
 
     def reset(self)->None:
         self._alerts.clear()
