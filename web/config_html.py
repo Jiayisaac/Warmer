@@ -62,24 +62,6 @@ CONFIG_PAGE = """
             border-radius: 5px;
         }
 
-        .colour-row {
-            display: flex;
-            gap: 10px;
-            align-items: stretch;
-        }
-
-        .colour-row input[type="text"] {
-            flex: 1;
-        }
-
-        .colour-row input[type="color"] {
-            width: 58px;
-            min-width: 58px;
-            height: 43px;
-            padding: 3px;
-            cursor: pointer;
-        }
-
         .buttons {
             display: flex;
             gap: 10px;
@@ -226,7 +208,7 @@ CONFIG_PAGE = """
 
             <div class="note">
                 Leave the Wi-Fi network unchanged if you
-                only want to modify Pumpkin settings.
+                only want to modify warmer settings.
             </div>
 
             <hr>
@@ -241,40 +223,13 @@ CONFIG_PAGE = """
                         {{ key }}
                     </label>
 
-                    {% if key.endswith('_HEX') %}
-
-                        <div class="colour-row">
-
-                            <input
-                                type="text"
-                                id="{{ key }}"
-                                name="{{ key }}"
-                                class="tracked-setting hex-value"
-                                value="{{ value }}"
-                                data-colour-picker="{{ key }}_PICKER"
-                            >
-
-                            <input
-                                type="color"
-                                id="{{ key }}_PICKER"
-                                class="colour-picker"
-                                data-hex-input="{{ key }}"
-                                aria-label="Select colour for {{ key }}"
-                            >
-
-                        </div>
-
-                    {% else %}
-
-                        <input
-                            type="text"
-                            id="{{ key }}"
-                            name="{{ key }}"
-                            class="tracked-setting"
-                            value="{{ value }}"
-                        >
-
-                    {% endif %}
+                    <input
+                        type="text"
+                        id="{{ key }}"
+                        name="{{ key }}"
+                        class="tracked-setting"
+                        value="{{ value }}"
+                    >
 
                 </div>
 
@@ -302,7 +257,7 @@ CONFIG_PAGE = """
         </form>
 
         <div class="navigation">
-            <a href="{{ url_for('logs') }}">View Temperature Logs</a>
+            <a class="guarded-link" href="{{ url_for('logs') }}">View Temperature Logs</a>
         </div>
 
     </div>
@@ -350,49 +305,11 @@ CONFIG_PAGE = """
     </div>
 
     <script>
-
         const form = document.getElementById('configuration-form');
         const modal = document.getElementById('unsaved-modal');
-        const currentMode = document.getElementById('current_mode');
-
         let dirty = false;
         let submitting = false;
         let pendingAction = null;
-        let previousMode = currentMode.value;
-
-        function normaliseHex(value) {
-            const match = value.trim().match(/^(?:#|0x)?([0-9a-fA-F]{6})$/);
-            return match ? '#' + match[1].toUpperCase() : null;
-        }
-
-        function updatePickerFromText(textInput) {
-            const picker = document.getElementById(
-                textInput.dataset.colourPicker
-            );
-            const colour = normaliseHex(textInput.value);
-
-            if (picker && colour) {
-                picker.value = colour;
-            }
-        }
-
-        function updateTextFromPicker(picker) {
-            const textInput = document.getElementById(
-                picker.dataset.hexInput
-            );
-            const selected = picker.value.substring(1).toUpperCase();
-            const current = textInput.value.trim();
-
-            if (current.toLowerCase().startsWith('0x')) {
-                textInput.value = '0x' + selected;
-            } else if (current.startsWith('#')) {
-                textInput.value = '#' + selected;
-            } else {
-                textInput.value = selected;
-            }
-
-            dirty = true;
-        }
 
         function showUnsavedWarning(action) {
             pendingAction = action;
@@ -405,50 +322,8 @@ CONFIG_PAGE = """
         }
 
         document.querySelectorAll('.tracked-setting').forEach((element) => {
-            element.addEventListener('input', () => {
-                dirty = true;
-            });
-
-            element.addEventListener('change', () => {
-                dirty = true;
-            });
-        });
-
-        document.querySelectorAll('.hex-value').forEach((input) => {
-            updatePickerFromText(input);
-
-            input.addEventListener('input', () => {
-                updatePickerFromText(input);
-            });
-        });
-
-        document.querySelectorAll('.colour-picker').forEach((picker) => {
-            picker.addEventListener('input', () => {
-                updateTextFromPicker(picker);
-            });
-        });
-
-        currentMode.addEventListener('change', async () => {
-            const selectedMode = currentMode.value;
-            const body = new FormData();
-            body.append('mode', selectedMode);
-
-            try {
-                const response = await fetch('/mode', {
-                    method: 'POST',
-                    body: body,
-                });
-
-                if (!response.ok) {
-                    throw new Error('Unable to change current mode');
-                }
-
-                previousMode = selectedMode;
-
-            } catch (error) {
-                currentMode.value = previousMode;
-                alert('Unable to change current mode.');
-            }
+            element.addEventListener('input', () => { dirty = true; });
+            element.addEventListener('change', () => { dirty = true; });
         });
 
         form.addEventListener('submit', () => {
@@ -466,36 +341,24 @@ CONFIG_PAGE = """
 
         document.querySelectorAll('.guarded-link').forEach((link) => {
             link.addEventListener('click', (event) => {
-                if (!dirty) {
-                    return;
-                }
-
+                if (!dirty) return;
                 event.preventDefault();
-                showUnsavedWarning(() => {
-                    window.location.href = link.href;
-                });
+                showUnsavedWarning(() => { window.location.href = link.href; });
             });
         });
 
-        document.getElementById('cancel-warning').addEventListener('click', () => {
-            hideUnsavedWarning();
-        });
+        document.getElementById('cancel-warning').addEventListener('click', hideUnsavedWarning);
 
         document.getElementById('save-warning').addEventListener('click', () => {
-            submitting = true;
-            dirty = false;
+            hideUnsavedWarning();
             form.requestSubmit();
         });
 
         window.addEventListener('beforeunload', (event) => {
-            if (!dirty || submitting) {
-                return;
-            }
-
+            if (!dirty || submitting) return;
             event.preventDefault();
             event.returnValue = '';
         });
-
     </script>
 
 </body>

@@ -156,7 +156,7 @@ def save():
     return RESTART_PAGE
 
 def run_web_server():
-    """Run the Flask web server using the active Flame instance."""
+    """Run the Flask web server."""
     app.run(
         host='0.0.0.0',
         port=5000,
@@ -166,5 +166,5 @@ def run_web_server():
 
 if __name__ == '__main__':
     raise RuntimeError(
-        'Run the web server through app.py so it receives the active Flame instance.'
+        'Run the web server through main.py so it receives the active Flame instance.'
     )

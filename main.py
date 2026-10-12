@@ -25,7 +25,7 @@ PID_REGRESSION_SECS : float = ENVIRONMENT.PID_REGRESSION_SECS
 OVERHEAT_DISABLE_MINS : int = ENVIRONMENT.OVERHEAT_DISABLE_MINS
 MAIN_UPDATE_TIME_SECS : int = ENVIRONMENT.MAIN_UPDATE_TIME_SECS
 
-def avg(thermisters: list[Thermister], tolerance:float=2.0)->None:
+def avg(thermisters: list[Thermister], tolerance:float=2.0)->float:
     """Average valid thermistors with consensus checking."""
 
     readings = {}
@@ -173,7 +173,7 @@ def start()->None:
                 logger.info(
                     "%.2f,%.2f,%.2f,%.2f,%.3f",
                     *temperatures,
-                    duty_cycle
+                    heater.value
                 )
 
                 text = [

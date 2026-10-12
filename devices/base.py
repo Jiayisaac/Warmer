@@ -64,6 +64,8 @@ class ADSBase:
     
     def _read_temperature(self):
         voltage = self._digital.voltage
+        if not math.isfinite(voltage) or not 0 < voltage < self.VCC:
+            raise ValueError(f"Invalid thermistor voltage: {voltage}")
         resistance = self.R_FIXED * (self.VCC - voltage) / voltage
         temperature = 1 / (
                 1 / self.T_NOMINAL +

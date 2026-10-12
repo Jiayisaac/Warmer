@@ -9,7 +9,7 @@ class Alert:
     T2_PROBE_ERROR = "T2 Probe Error"
     T3_PROBE_ERROR = "T3 Probe Error"
 
-    def __init__(self, max_alerts:int=5)->None:
+    def __init__(self, max_alerts:int=6)->None:
         self._alerts = deque(maxlen=max_alerts)
         self._last_pos = -1
 
