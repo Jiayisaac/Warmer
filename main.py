@@ -142,7 +142,7 @@ def start()->None:
 
         while True:
             try:
-                curr_t = avg(thermisters[1:])
+                curr_t = avg(thermisters)
                 htr_temp, _ = thermisters[0].temp
 
                 if not math.isfinite(htr_temp) or not -10 <= htr_temp <= 120:
