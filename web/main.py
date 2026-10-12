@@ -166,5 +166,5 @@ def run_web_server():
 
 if __name__ == '__main__':
     raise RuntimeError(
-        'Run the web server through main.py so it receives the active Flame instance.'
+        'Run the web server through main.py.'
     )

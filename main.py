@@ -202,6 +202,7 @@ def start()->None:
     except Exception as e:
         print(f"An unknown exception {e} occurred.")
         traceback.print_exc()
+        raise
 
     finally:
         if heater is not None:
