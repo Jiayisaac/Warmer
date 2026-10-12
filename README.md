@@ -40,7 +40,7 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
 Test app works:
-python app.py
+python main.py
 
 Add warmer.service to:
 /etc/systemd/system/warmer.service
