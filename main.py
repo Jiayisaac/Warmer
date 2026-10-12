@@ -10,6 +10,7 @@ from environment import ENVIRONMENT
 from wifi import WiFi
 from devices import Heater, Fan, Display, Thermister
 from web.main import run_web_server
+from log import logger
 
 alert = Alert()
 
@@ -167,6 +168,13 @@ def start()->None:
                         max_output=max_power
                     )
                     heater.set_output(min(duty_cycle, max_power))
+
+                temperatures = [t.temp[0] for t in thermisters]
+                logger.info(
+                    "%.2f,%.2f,%.2f,%.2f,%.3f",
+                    *temperatures,
+                    duty_cycle
+                )
 
                 text = [
                     f'Temp: {curr_t:.1f}°C',

@@ -9,6 +9,7 @@ class Display:
         self.oled.fill(0)
         self.oled.show()
         self._commenced = time.monotonic()
+        self._v_heights = [0, 16, 32, 49]
 
     @property
     def elapsed(self):
@@ -28,7 +29,8 @@ class Display:
         else:
             lines = text
         for row, txt in enumerate(lines):
-            draw.text((0,row*20), txt, font=font, fill=255)
+            v_height = self._v_heights[row]
+            draw.text((0,v_height), txt, font=font, fill=255)
         self.oled.image(image)
         self.oled.show()
 
