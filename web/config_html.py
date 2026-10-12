@@ -301,6 +301,10 @@ CONFIG_PAGE = """
 
         </form>
 
+        <div class="navigation">
+            <a href="{{ url_for('logs') }}">View Temperature Logs</a>
+        </div>
+
     </div>
 
     <div
