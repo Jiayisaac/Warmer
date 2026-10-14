@@ -1,7 +1,10 @@
 import time
 import math
+import board
+import neopixel
 from adafruit_ads1x15 import ADS1115, ads1x15, AnalogIn
 from gpiozero import PWMOutputDevice
+from environment import ENVIRONMENT
 
 
 class PWMBase:
@@ -73,3 +76,31 @@ class ADSBase:
             ) - 273.15
         self._last_reading = (temperature, time.monotonic())
         return self._last_reading
+
+
+class LED:
+    def __init__(self)->None:
+        self.active = False
+        gpio = ENVIRONMENT.LED_GPIO
+        pin = gpio.replace('GP', 'D')
+        self.neopixel = neopixel.NeoPixel(getattr(board, pin), ENVIRONMENT.LED_NUMBER)
+
+    def on(self)->None:
+        self.active = True
+        self.neopixel.fill((255,255,255))
+
+    def off(self)->None:
+        self.active = False
+        self.neopixel.fill((255,255,255))
+
+    def set_colour(self, 
+                   led_number:int|None=None, 
+                   colour: tuple[int,int,int]=(255,255,255))->None:
+        if not all(0 <= c <= 255 for c in colour) or not isinstance(colour, tuple):
+            raise AttributeError('Colour must be a tuple in the range of 0 to 255')
+        if led_number is None and colour == (0,0,0):
+            self.active = False
+        if led_number is not None and 0 >= led_number <= ENVIRONMENT.LED_NUMBER:
+            self.neopixel[led_number].fill = colour
+        else:
+            self.neopixel.fill(colour)

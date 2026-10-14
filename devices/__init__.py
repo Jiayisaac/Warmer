@@ -1,5 +1,5 @@
 from .display import Display
-from .base import PWMBase, ADSBase
+from .base import PWMBase, ADSBase, LED
 
 class Heater(PWMBase):
     pass

@@ -47,3 +47,21 @@ if not logger.handlers:
 
     # Write header when the initial file is created
     file_handler._write_header()
+
+def clear_log():
+    for handler in logger.handlers:
+        if isinstance(handler, CSVRotatingFileHandler):
+            handler.acquire()
+            try:
+                if handler.stream is not None:
+                    handler.stream.close()
+                    handler.stream = None
+
+                Path(handler.baseFilename).write_text(
+                    CSV_HEADER,
+                    encoding="utf-8"
+                )
+
+                handler.stream = handler._open()
+            finally:
+                handler.release()
