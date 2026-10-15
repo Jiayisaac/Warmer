@@ -1,7 +1,6 @@
 import math
 import threading
 import time
-import traceback
 
 import board
 import gpiozero
@@ -113,7 +112,13 @@ def start():
         fan.set_output(0)
         led = LED()
         led.off()
-        display = Display(i2c)
+
+        try:
+            display = Display(i2c)
+        except (OSError, ValueError) as e:
+            print(f"Display unavailable: {e}")
+            display = None
+
         ads = ADS1115(i2c)
         ads.gain = 1
         thermistors = [Thermister(ads, i) for i in range(4)]
@@ -158,7 +163,8 @@ def start():
             if not active:
                 text = ["SYSTEM OFF"]
                 if text != old_text:
-                    display.write(text)
+                    if display is not None:
+                        display.write(text)
                     old_text = text
                 state_changed.wait(timeout=0.2)
                 state_changed.clear()
@@ -211,7 +217,8 @@ def start():
                 text = ["SENSOR FAULT", "Heater: OFF", alert.read()]
 
             if text != old_text:
-                display.write(text)
+                if display is not None:
+                    display.write(text)
                 old_text = text
 
             state_changed.wait(timeout=ENVIRONMENT.MAIN_UPDATE_TIME_SECS)
@@ -220,7 +227,6 @@ def start():
     except KeyboardInterrupt:
         pass
     except Exception:
-        traceback.print_exc()
         raise
     finally:
         if button is not None:
