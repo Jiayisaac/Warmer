@@ -25,7 +25,7 @@ class Environment:
     BUTTON_GPIO : str = os.getenv('BUTTON_GPIO', 'GPIO21')
     HEATER_GPIO : str = os.getenv('HEATER_GPIO', 'GPIO12')
     FAN_GPIO : str = os.getenv('FAN_GPIO', 'GPIO17')
-    LED_GPIO : str = os.getenv('LED_GPIO', 'GPIO14')
+    LED_GPIO : str = os.getenv('LED_GPIO', 'GPIO18')
     LED_NUMBER : int = int(os.getenv('LED_NUMBER', '25'))
 
 
