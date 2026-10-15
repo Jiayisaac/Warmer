@@ -34,21 +34,23 @@ class PWMBase:
 
 
 class ADSBase:
-    R_FIXED = 10000
-    R_NOMINAL = 10000
-    BETA = 3950
+    """10 kOhm B3950 thermistor attached to a shared ADS1115."""
+    R_FIXED = 10000.0
+    R_NOMINAL = 10000.0
+    BETA = 3950.0
     VCC = 3.3
-    T_NOMINAL = 298.15  # 25°C in Kelvin
+    T_NOMINAL = 298.15
 
-    def __init__(self, i2c, ads_input_pin: int = 0):
-        if ads_input_pin not in range(0,4):
-            raise AttributeError("Input pin not in range 0-3")
-        self.ads = ADS1115(i2c)
-        self.ads.gain = 1
-        self._digital = AnalogIn(self.ads, getattr(ads1x15.Pin, f"A{ads_input_pin}"))
+    def __init__(self, ads: ADS1115, ads_input_pin: int = 0):
+        if not isinstance(ads, ADS1115):
+            raise TypeError("Pass a shared ADS1115 instance, not the I2C bus")
+        if ads_input_pin not in range(4):
+            raise ValueError("ADS input pin must be 0-3")
+        self.ads = ads
+        self._digital = AnalogIn(ads, getattr(ads1x15.Pin, f"A{ads_input_pin}"))
         self._last_reading = None
         self._commenced = time.monotonic()
-    
+
     @property
     def voltage(self):
         return self._digital.voltage
@@ -59,23 +61,21 @@ class ADSBase:
 
     @property
     def temp(self):
-        return self._read_temperature()
-    
-    @property
-    def elapsed(self):
-        return time.monotonic() - self._commenced
-    
-    def _read_temperature(self):
         voltage = self._digital.voltage
         if not math.isfinite(voltage) or not 0 < voltage < self.VCC:
             raise ValueError(f"Invalid thermistor voltage: {voltage}")
+        # Fixed resistor to ground, NTC to VCC.
         resistance = self.R_FIXED * (self.VCC - voltage) / voltage
-        temperature = 1 / (
-                1 / self.T_NOMINAL +
-                math.log(resistance / self.R_NOMINAL) / self.BETA
-            ) - 273.15
+        temperature = 1.0 / (
+            1.0 / self.T_NOMINAL
+            + math.log(resistance / self.R_NOMINAL) / self.BETA
+        ) - 273.15
         self._last_reading = (temperature, time.monotonic())
         return self._last_reading
+
+    @property
+    def elapsed(self):
+        return time.monotonic() - self._commenced
 
 
 class LED:
@@ -91,16 +91,18 @@ class LED:
 
     def off(self)->None:
         self.active = False
-        self.neopixel.fill((255,255,255))
+        self.neopixel.fill((0,0,0))
 
     def set_colour(self, 
                    led_number:int|None=None, 
                    colour: tuple[int,int,int]=(255,255,255))->None:
-        if not all(0 <= c <= 255 for c in colour) or not isinstance(colour, tuple):
+        if not isinstance(colour, tuple) or len(colour) != 3 or any(not isinstance(c, int) or not 0 <= c <= 255 for c in colour):
             raise AttributeError('Colour must be a tuple in the range of 0 to 255')
         if led_number is None and colour == (0,0,0):
             self.active = False
-        if led_number is not None and 0 >= led_number <= ENVIRONMENT.LED_NUMBER:
-            self.neopixel[led_number].fill = colour
+        if led_number is not None:
+            if not isinstance(led_number, int) or not 0 <= led_number < ENVIRONMENT.LED_NUMBER:
+                raise ValueError("Invalid LED index")
+            self.neopixel[led_number] = colour
         else:
             self.neopixel.fill(colour)
