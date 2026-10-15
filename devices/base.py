@@ -82,7 +82,7 @@ class LED:
     def __init__(self)->None:
         self.active = False
         gpio = ENVIRONMENT.LED_GPIO
-        pin = gpio.replace('GP', 'D')
+        pin = gpio.replace('GPIO', 'D')
         self.neopixel = neopixel.NeoPixel(getattr(board, pin), ENVIRONMENT.LED_NUMBER)
 
     def on(self)->None:

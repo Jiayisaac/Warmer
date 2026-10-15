@@ -4,7 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
+User=pi
+Group=pi
 WorkingDirectory=/home/pi/Warmer
 ExecStart=/home/pi/Warmer/venv/bin/python /home/pi/Warmer/main.py
 
