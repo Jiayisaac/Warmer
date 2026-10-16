@@ -1,5 +1,7 @@
 """Web interface for monitoring and configuring the Warmer."""
 import subprocess
+import os
+import signal
 import csv
 from collections import deque
 from pathlib import Path
@@ -25,13 +27,11 @@ app = Flask(__name__)
 def reboot_after_delay(delay=2):
     """Wait briefly before rebooting."""
     time.sleep(delay)
-    subprocess.run(
-        [
-            'sudo',
-            '/usr/sbin/reboot'
-        ],
-        check=False
-    )
+    # Request systemd to stop the service first; its SIGTERM handler
+    # will switch off all outputs before the reboot proceeds.
+    subprocess.run(['/usr/bin/systemd-run', '--unit=warmer-config-reboot', '--collect',
+                    '/bin/sh', '-c',
+                    'systemctl stop warmer.service && systemctl reboot'], check=False)
 
 
 # Same directory used by log.py: project root / warmer.csv.
